@@ -1,0 +1,11 @@
+requests
+itsdangerous
+rich
+logging
+flask
+zlib
+hashlib
+base64
+socket
+ipaddress
+netifaces
