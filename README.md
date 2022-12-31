@@ -1,5 +1,10 @@
 # The Vial Project
 
+<p align="center">
+    <a href="https://github.com/CopernicusPY/vial/stargazers"><img src="https://img.shields.io/github/stars/CopernicusPY/vial?colorA=363a4f&colorB=b7bdf8&style=for-the-badge"></a>
+    <a href="https://github.com/CopernicusPY/vial/issues"><img src="https://img.shields.io/github/issues/CopernicusPY/vial?colorA=363a4f&colorB=f5a97f&style=for-the-badge"></a>
+    <a href="https://github.com/CopernicusPY/vial/contributors"><img src="https://img.shields.io/github/contributors/CopernicusPY/vial?colorA=363a4f&colorB=a6da95&style=for-the-badge"></a>
+</p>
 Vial is a `blazing fast python framework` focused on exploiting [Flask](https://flask.palletsprojects.com/en/2.2.x/) applications. 
 
 It allows efficient session cookie ["forging"](https://en.m.wikipedia.org/wiki/Session_hijacking) and decoding 
