@@ -1,13 +1,20 @@
-from distutils.log import Log
-from rich.console import Console
-import rich.prompt
-from vial.logger import Logger
+import logging
+from rich.logging import RichHandler
+import requests
 
+logging.basicConfig(
+    level="NOTSET",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(markup=True, rich_tracebacks=True)],
+)
+
+log = logging.getLogger("rich")
 
 # Declare constants
 DEFAULT_SALT = "cookie-session"
+DEFAULT_COOKIE_NAME = "session"
+DEFAULT_USER_AGENT = "Vial/1.0"
+FETCHED_COOKIE = None
 
-console = Console()
-prompt = rich.prompt.Prompt()
-logger = Logger(console)
-confirm = rich.prompt.Confirm()
+web_session = requests.Session()

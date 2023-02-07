@@ -49,9 +49,65 @@ def verify(
     return True
 
 
+def decode(value: str) -> dict:
+    """
+    Flask uses a custom JSON serializer so they can encode other data types.
+    This code is based on theirs, but we cast everything to strings because
+    we don't need them to survive a round trip if we're just decoding them.
+
+    Sourced from : https://www.kirsle.net/wizards/flask-session.cgi#source
+    """
+    try:
+        compressed = False
+        payload = value
+
+        if payload.startswith("."):
+            compressed = True
+            payload = payload[1:]
+
+        data = payload.split(".")[0]
+
+        data = base64.b64decode(data)
+
+        if compressed:
+            data = zlib.decompress(data)
+
+        data = data.decode("utf-8")
+
+    except Exception as e:
+        raise ValueError(
+            f"Failed to decode cookie, are you sure this was a Flask session cookie? {e}"
+        )
+
+    def hook(obj):
+        if len(obj) != 1:
+            return obj
+
+        key, value = next(iter(obj.items()))
+
+        match key:
+            case " t":
+                return tuple(value)
+            case " u":
+                return UUID(value)
+            case " b":
+                return base64.b64decode(value)
+            case " d":
+                return parse_date(value)
+
+        return obj
+
+    try:
+        return json.loads(data, object_hook=hook)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to decode cookie, are you sure this was a Flask session cookie? {e}"
+        )
+
+
 def sign(
     value: dict, secret: str, legacy: bool = False, salt: str = DEFAULT_SALT
-) -> str:
+) -> str | bytes:
     """
     Signs a custom session value with a known secret
     :param value: Raw Python object (generally a dictionary) to serialize
