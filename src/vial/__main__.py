@@ -92,7 +92,9 @@ def main() -> None:
 
             decode_handler()
         case "encode":
-            pass
+            from vial.utils import encode_handler
+
+            encode_handler()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import vial
 from vial.session import decode, sign
 from rich.prompt import Prompt as prompt
+from rich.prompt import Confirm as confirm
 import json
 import requests
 import ipaddress
@@ -33,9 +34,27 @@ def decode_handler() -> None:
     else:
         cookie = vial.FETCHED_COOKIE
 
-    decoded_cookie = decode(cookie)
-    vial.log.info(f"Decoded cookie: [bold]{decoded_cookie}[/]")
+    cookie= decode(cookie)
+    vial.log.info(f"Decoded cookie: [bold]{cookie}[/]")
 
+
+def encode_handler() -> None:
+    # NOTE: cookie = sign(json.loads(session_cookie_structure), secret_key, legacy=legacy)
+    secret_key = prompt.ask("[bold blue][?][/] Enter the secret key")
+    session_cookie_structure = prompt.ask(
+        "[bold blue][?][/] Enter the session cookie structure"
+    )
+    legacy = confirm.ask("[bold blue][?][/] Use a legacy timestamp")
+
+    cookie = sign(json.loads(session_cookie_structure), secret_key, legacy=legacy)
+    # NOTE: Create arguments for SALT
+    #actions = {"inject": inject_cookie, "save": save_cookie}
+
+    #action = prompt.ask(
+     #   "[bold blue][?][/] Pick an action",
+      #  choices=[action for action in actions.keys()],
+    #)
+    vial.log.info(f"Encoded cookie: [bold]{cookie}[/]")
 
 def fetch_cookie(
     host: str,
