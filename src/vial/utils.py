@@ -41,12 +41,12 @@ def decode_handler() -> None:
 def encode_handler() -> None:
     # NOTE: cookie = sign(json.loads(session_cookie_structure), secret_key, legacy=legacy)
     secret_key = prompt.ask("[bold blue][?][/] Enter the secret key")
-    session_cookie_structure = prompt.ask(
-        "[bold blue][?][/] Enter the session cookie structure"
+    value = prompt.ask(
+        "[bold blue][?][/] Enter the session cookie"
     )
     legacy = confirm.ask("[bold blue][?][/] Use a legacy timestamp")
 
-    cookie = sign(json.loads(session_cookie_structure), secret_key, legacy=legacy)
+    cookie = sign(json.loads(value), secret_key, legacy=legacy)
     # NOTE: Create arguments for SALT
     #actions = {"inject": inject_cookie, "save": save_cookie}
 
@@ -55,6 +55,19 @@ def encode_handler() -> None:
       #  choices=[action for action in actions.keys()],
     #)
     vial.log.info(f"Encoded cookie: [bold]{cookie}[/]")
+
+def inject_cookie():
+    try:
+        host = prompt.ask("[bold blue][?][/] Enter the host")
+        resp = vial.web_session.get(
+            host,
+        )
+    except requests.RequestException as e:
+        return vial.log.error(
+            f"Failed to fetch session data from the server. {_extract_error(e)}",
+        )
+
+    vial.log.info(f"Server returned HTTP {resp.status_code} ({resp.reason})")
 
 def fetch_cookie(
     host: str,
