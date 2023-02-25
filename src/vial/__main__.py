@@ -49,52 +49,53 @@ args = parser.parse_args()
 
 
 def main() -> None:
-    # TODO: Find a way to implement checks on the proxy/user-agent without triggering errors
+    try:
+        if args.proxy and isinstance(args.proxy, str):
+            vial.session.proxies: Proxy = {"http": args.proxy, "https": args.proxy}
+            vial.log.info(f"Using proxy: {args.proxy}")
 
-    if args.proxy and isinstance(args.proxy, str):
-        vial.session.proxies: Proxy = {"http": args.proxy, "https": args.proxy}
-        vial.log.info(f"Using proxy: {args.proxy}")
+        if (
+            args.user_agent
+            and args.user_agent != vial.DEFAULT_USER_AGENT
+            and isinstance(args.user_agent, str)
+        ):
+            vial.session.user_agent = args.user_agent
+            vial.log.info(f"Using User-Agent: {vial.session.user_agent}")
 
-    if (
-        args.user_agent
-        and args.user_agent != vial.DEFAULT_USER_AGENT
-        and isinstance(args.user_agent, str)
-    ):
-        vial.session.user_agent = args.user_agent
-        vial.log.info(f"Using User-Agent: {vial.session.user_agent}")
+        if args.server:
+            vial.session.verify = not args.insecure
 
-    if args.server:
-        vial.session.verify = not args.insecure
+            if args.insecure:
+                from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-        if args.insecure:
-            from requests.packages.urllib3.exceptions import InsecureRequestWarning
+                requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+            vial.FETCHED_COOKIE = fetch_cookie(
+                host=args.server,
+                cookie_name=args.cookie_name,
+                session=vial.web_session,
+            )
 
-        vial.FETCHED_COOKIE = fetch_cookie(
-            host=args.server,
-            cookie_name=args.cookie_name,
-            session=vial.web_session,
+        # TODO: User actions
+        action = Prompt.ask(
+            "[bold blue][?][/] Select an action", choices=["encode", "decode"]
         )
+        if vial.FETCHED_COOKIE:
+            vial.log.info(
+                f"Using pre-fetched cookie: [bold]{vial.FETCHED_COOKIE}[/] ({args.server})"
+            )
 
-    # TODO: User actions
-    action = Prompt.ask(
-        "[bold blue][?][/] Select an action", choices=["encode", "decode"]
-    )
-    if vial.FETCHED_COOKIE:
-        vial.log.info(
-            f"Using pre-fetched cookie: [bold]{vial.FETCHED_COOKIE}[/] ({args.server})"
-        )
+        match action:
+            case "decode":
+                from vial.utils import decode_handler
 
-    match action:
-        case "decode":
-            from vial.utils import decode_handler
+                decode_handler()
+            case "encode":
+                from vial.utils import encode_handler
 
-            decode_handler()
-        case "encode":
-            from vial.utils import encode_handler
-
-            encode_handler()
+                encode_handler()
+    except KeyboardInterrupt:
+        vial.log.error("Received [bold]keyboard interrupt[/]")
 
 
 if __name__ == "__main__":
