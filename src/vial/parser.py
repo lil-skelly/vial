@@ -25,6 +25,17 @@ def func(proxy: proxy, user_agent: str) -> dict:
     return proxy
 
 
+def parse(func: Callable[..., Any]):
+    sig = inspect.signature(func)
+    args = []
+
+    for param in sig.parameters.values():
+        name = param.name.replace("_", " ")
+        _param = input(f"Enter the {name} ")
+        args.append(_param)
+
+    return func(*args)
+
 def checktypes(func: Callable[..., Any]):
     """Decorator to validate the types of the arguments and return types
 
@@ -131,15 +142,4 @@ def checktypes(func: Callable[..., Any]):
     return wrapper
 
 
-@checktypes
-def test(a: int, b: int) -> int:
-    print(a + b)
-
-
-sig = inspect.signature(test)
-params = []
-for param in sig.parameters.values():
-    params.append(input(f"Enter {param.name}: "))
-
-ba = sig.bind_partial(*params)
-test(*ba.args, **ba.kwargs)
+parse(func)
