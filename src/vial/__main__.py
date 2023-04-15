@@ -51,7 +51,7 @@ args = parser.parse_args()
 def main() -> None:
     try:
         if args.proxy and isinstance(args.proxy, str):
-            vial.session.proxies: Proxy = {"http": args.proxy, "https": args.proxy}
+            vial.web_session.proxies: Proxy = {"http": args.proxy, "https": args.proxy}
             vial.log.info(f"Using proxy: {args.proxy}")
 
         if (
