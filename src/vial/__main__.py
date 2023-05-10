@@ -44,12 +44,22 @@ parser.add_argument(
         + f"Defaults to {vial.DEFAULT_USER_AGENT}.\n"
     ),
 )
+parser.add_argument(
+    "--config",
+    "-c",
+    type=str,
+    help=(
+        "TOML configuration file to use."
+    ),
+)
 
 args = parser.parse_args()
 
 
 def main() -> None:
     try:
+        if args.config:
+            vial.CONFIG = args.config
         if args.proxy and isinstance(args.proxy, str):
             vial.web_session.proxies: Proxy = {"http": args.proxy, "https": args.proxy}
             vial.log.info(f"Using proxy: {args.proxy}")
@@ -78,7 +88,7 @@ def main() -> None:
 
         # TODO: User actions
         action = Prompt.ask(
-            "[bold blue][?][/] Select an action", choices=["encode", "decode"]
+            "[bold blue][?][/] Select an action", choices=["encode", "decode", "pin"]
         )
         if vial.FETCHED_COOKIE:
             vial.log.info(
@@ -94,6 +104,14 @@ def main() -> None:
                 from vial.utils import encode_handler
 
                 encode_handler()
+            case "pin":
+                if not args.config:
+                    vial.log.error(
+                        "[underline]pin[/] mode can only be used along the [bold]--config[/] argument."
+                    )
+                else:
+                    from vial.utils import generate_pin
+                    generate_pin(vial.CONFIG)
     except KeyboardInterrupt:
         vial.log.error("Received [bold]keyboard interrupt[/]")
 

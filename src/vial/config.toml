@@ -1,0 +1,14 @@
+# NOTE: This file contains configuration for the pin generation utility
+# NOTE: We use dictionaries (arrays) so that we can check for missing public bytes and attempt to obtain them automatically (in the future)
+[pin_gen]
+pinsalt="pinsalt"
+# Public bits
+"username"=""
+"modname"="flask.app"
+"magic"="Flask"
+"abs_path"=""
+"platform"="" # Servers platform (windows/linux). Will be used to automatically obtain the abs_path
+# Private bits
+"mac"=""
+"machine-id"=""
+

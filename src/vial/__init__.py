@@ -19,5 +19,5 @@ DEFAULT_COOKIE_NAME = "session"
 DEFAULT_USER_AGENT = "Vial/1.0"
 
 FETCHED_COOKIE = None
-
+CONFIG = None
 web_session = requests.Session()
