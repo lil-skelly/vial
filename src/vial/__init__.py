@@ -2,6 +2,7 @@ import logging
 from rich.logging import RichHandler
 from rich.prompt import Prompt as prompt
 from rich.prompt import Confirm as confirm
+from rich.console import Console
 import requests
 
 logging.basicConfig(
@@ -12,7 +13,7 @@ logging.basicConfig(
 )
 
 log = logging.getLogger("rich")
-
+console = Console()
 # Declare constants
 DEFAULT_SALT = "cookie-session"
 DEFAULT_COOKIE_NAME = "session"
