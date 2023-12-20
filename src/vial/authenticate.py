@@ -1,8 +1,8 @@
-from vial import prompt, web_session
+from vial import prompt, a_web_session
 import vial
 
 
-def authenticate(
+async def authenticate(
     parameters: dict,
     url: str = "http://localhost:5000/",
 ) -> None:
@@ -14,10 +14,10 @@ def authenticate(
         pin = prompt.ask("[bold blue][?][/] Enter pin", password=True)
         parameters["pin"] = pin
 
-        resp = web_session.post(url, params=parameters).json()
+        resp = await a_web_session.post(url, params=parameters)
         vial.log.info(resp)
 
-        if not resp["auth"]:
+        if not resp.json()["auth"]:
             vial.log.error(f"Failed to authenticate with pin {pin}.")
             continue
 

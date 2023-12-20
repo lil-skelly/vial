@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Insecure Upload</title>
+    </head>
+<body>
+<form action="/upload" method="POST" enctype="multipart/form-data">
+        <h2>Secure File Upload</h2>
+        <input style="text-align:center;margin-top:1%;" type="file" name="file" placeholder="Upload">
+        <button style="text-align:center;margin-top:1%;" type="submit">Submit</button>
+        <strong>{{data}}</strong>
+    </form>
+</body>
+</html>
