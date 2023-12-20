@@ -1,0 +1,11 @@
+[pin_gen]
+# Public bits
+"usernames"=["alice"]
+"modnames"=["flask.app", "werkzeug.debug"]
+"appnames"=["wsgi_app", "DebugApplication", "Flask"]
+"paths"=[""]
+"platform"=[""] # Servers platform (windows/linux). Will be used to automatically obtain the abs_path
+# Private bits
+"node_uuid"=[""]
+"machine_id"=[""]
+
